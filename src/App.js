@@ -2,11 +2,14 @@ import { RouterProvider } from 'react-router-dom';
 import './App.css';
 import routers from './routers';
 import "react-loading-skeleton/dist/skeleton.css";
+import { ChakraProvider } from '@chakra-ui/react';
 
 function App() {
   return (
     <>
-       <RouterProvider router={routers}/>
+      <ChakraProvider>
+        <RouterProvider router={routers} />
+      </ChakraProvider>
     </>
   );
 }
