@@ -170,7 +170,6 @@ const Login = () => {
                 'success'
             )
             localStorage.setItem('user',JSON.stringify(acount.data.user))
-            localStorage.setItem('token',JSON.stringify(acount.data.token))
             setTimeout(() => {
                 navagate('/')
             }, 1000)
