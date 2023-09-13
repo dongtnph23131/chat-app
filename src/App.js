@@ -3,13 +3,16 @@ import './App.css';
 import routers from './routers';
 import "react-loading-skeleton/dist/skeleton.css";
 import { ChakraProvider } from '@chakra-ui/react';
+import ChatProvider from './context/ChatProvider';
 
 function App() {
   return (
     <>
-      <ChakraProvider>
-        <RouterProvider router={routers} />
-      </ChakraProvider>
+      <ChatProvider>
+        <ChakraProvider>
+          <RouterProvider router={routers} />
+        </ChakraProvider>
+      </ChatProvider>
     </>
   );
 }

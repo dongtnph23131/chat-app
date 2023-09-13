@@ -1,22 +1,33 @@
 import { BellIcon, ChevronDownIcon } from '@chakra-ui/icons'
 import { Box, Stack, Text } from '@chakra-ui/layout'
-import { Avatar, Button, Drawer, DrawerBody, DrawerContent, DrawerHeader, DrawerOverlay, Input, Menu, MenuButton, MenuItem, MenuList, Skeleton, Tooltip, useDisclosure, useToast } from '@chakra-ui/react'
+import { Avatar, Button, Drawer, DrawerBody, DrawerContent, DrawerHeader, DrawerOverlay, Input, Menu, MenuButton, MenuItem, MenuList, Skeleton, Spinner, Tooltip, useDisclosure, useToast } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import ProfileModal from '../Modal/ProfileModal'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import UserListSearchItem from '../User/UserListSearchItem'
+import { ChatState } from '../../context/ChatProvider'
 const Header = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')))
     const [data, setData] = useState([])
     const [search, setSearch] = useState("")
     const [isLoading, setIsLoading] = useState()
     const navigate = useNavigate()
+    const [loadingChat, setLoadingChat] = useState(false);
+    const {
+        setSelectedChat,
+        notification,
+        setNotification,
+        chats,
+        setChats,
+    } = ChatState();
     const logout = () => {
         localStorage.removeItem('user')
         localStorage.removeItem('token')
         setUser()
+        setChats([])
         navigate('/login')
+        setSelectedChat()
     }
     const toast = useToast();
     const { isOpen, onOpen, onClose } = useDisclosure()
@@ -40,6 +51,33 @@ const Header = () => {
         }
         catch (error) {
             setIsLoading(false)
+            toast({
+                title: "Error Occured!",
+                description: "Failed to Load the Search Results",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: "bottom-left",
+            });
+        }
+    }
+    const accessChat = async (userId) => {
+        try {
+            setLoadingChat(true)
+            const token = JSON.parse(localStorage.getItem('token'))
+            const { data } = await axios.post('https://chat-app-poly.onrender.com/api/accessChat', { userId }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            setLoadingChat(false)
+            const isChatItem = chats?.find(item => item._id === data._id)
+            if (!isChatItem) {
+                setChats([...chats, data])
+            }
+            onClose()
+        }
+        catch (error) {
             toast({
                 title: "Error Occured!",
                 description: "Failed to Load the Search Results",
@@ -81,7 +119,7 @@ const Header = () => {
                     </Menu>
                 </div>
             </Box>
-            <Drawer placement="left" onClose={()=>{
+            <Drawer placement="left" onClose={() => {
                 onClose()
                 setSearch("")
                 setData([])
@@ -108,8 +146,9 @@ const Header = () => {
                             <Skeleton className='h-[4rem]' />
                         </Stack> : <>
                             {data?.map((item) => {
-                                return <UserListSearchItem user={item} key={item._id} />
+                                return <UserListSearchItem onClick={() => accessChat(item._id)} user={item} key={item._id} />
                             })}
+                            {loadingChat && <Spinner ml="auto" d="flex" />}
                         </>}
                     </DrawerBody>
                 </DrawerContent>

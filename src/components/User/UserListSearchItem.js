@@ -2,9 +2,10 @@ import { Box, Text } from '@chakra-ui/layout'
 import { Avatar } from '@chakra-ui/react'
 import React from 'react'
 
-const UserListSearchItem = ({user}) => {
+const UserListSearchItem = ({user,onClick}) => {
     return (
         <Box
+            onClick={onClick}
             className='flex'
             cursor="pointer"
             bg="#E8E8E8"
@@ -26,7 +27,7 @@ const UserListSearchItem = ({user}) => {
                 size="sm"
                 cursor="pointer"
                 name={user.name}
-                src={user.pic}
+                src={user.avatar}
             />
             <Box>
                 <Text>{user.name}</Text>
