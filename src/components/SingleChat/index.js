@@ -12,7 +12,7 @@ import axios from 'axios'
 import ScrollableChat from '../ScrollableChat'
 import { io } from 'socket.io-client'
 const loggedUser = JSON.parse(localStorage.getItem('user'))
-const Endpoint = 'https://chat-app-poly.onrender.com/api'
+const Endpoint = 'http://localhost:5000'
 let socket, selectedChatCompare;
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     const { selectedChat, setSelectedChat,notification, setNotification } = ChatState()
