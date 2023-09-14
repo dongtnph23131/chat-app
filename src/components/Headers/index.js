@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import UserListSearchItem from '../User/UserListSearchItem'
 import { ChatState } from '../../context/ChatProvider'
+import { getSender } from '../../config/ChatLogics'
+
 const Header = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')))
     const [data, setData] = useState([])
@@ -103,8 +105,21 @@ const Header = () => {
                 <div>
                     <Menu>
                         <MenuButton p={1}>
+                            {notification.length>0&& notification.length}
                             <BellIcon className='text-2xl' m={1} />
                         </MenuButton>
+                        <MenuList>
+                            {notification.length === 0 ? "No New Message" : <>
+                                {notification.map(item => {
+                                    return <MenuItem onClick={() => {
+                                        setSelectedChat(item.chat)
+                                        setNotification(notification.filter(n => n !== item))
+                                    }} key={item._id}>
+                                        {item.chat.isGroupChat ? `New Message in ${item.chat.chatName}` : `New Message from ${getSender(user, item.chat.users)}`}
+                                    </MenuItem>
+                                })}
+                            </>}
+                        </MenuList>
                     </Menu>
                     <Menu>
                         <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>

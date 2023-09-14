@@ -10,14 +10,18 @@ import Lottie from 'lottie-react'
 import animationData from "../../animations/typing.json";
 import axios from 'axios'
 import ScrollableChat from '../ScrollableChat'
+import { io } from 'socket.io-client'
 const loggedUser = JSON.parse(localStorage.getItem('user'))
-const token = JSON.parse(localStorage.getItem('token'))
+const Endpoint = 'https://chat-app-poly.onrender.com/api'
+let socket, selectedChatCompare;
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-    const { selectedChat, setSelectedChat } = ChatState()
+    const { selectedChat, setSelectedChat,notification, setNotification } = ChatState()
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')))
+    const [token,setToken]=useState(JSON.parse(localStorage.getItem('token')))
     const [isLoading, setIsLoading] = useState(false)
-    const [istyping, setIsTyping] = useState(false);
     const [newMessage, setNewMessage] = useState("");
     const [messages, setMessages] = useState([])
+    const [socketConnected, setSocketConnected] = useState(false);
     const fetchMessages = async () => {
         if (!selectedChat) return
         try {
@@ -29,6 +33,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             })
             setMessages(data)
             setIsLoading(false)
+            //gửi phòng chat :id phòng 
+            socket.emit('join chat', selectedChat._id)
         }
         catch (error) {
             toast({
@@ -42,20 +48,36 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         }
     }
     useEffect(() => {
+        socket = io(Endpoint)
+        //gửi dữ liệu đến server
+        socket.emit('setup', user)
+        //kết nối thành công
+        socket.on('connected', () => setSocketConnected(true))
+    }, [])
+    useEffect(() => {
         fetchMessages()
+        selectedChatCompare = selectedChat
     }, [selectedChat])
+    console.log(notification);
+    useEffect(() => {
+        socket.on('message recieved', (newMessageRecieved) => {
+            if (
+                !selectedChatCompare ||
+                selectedChatCompare._id !== newMessageRecieved.chat._id
+            ) {
+                if (!notification.includes(newMessageRecieved)) {
+                    setNotification([newMessageRecieved, ...notification]);
+                    setFetchAgain(!fetchAgain);
+                }
+            } else {
+                setMessages([...messages, newMessageRecieved]);
+            }
+        })
+    })
     const typingHandler = (event) => {
         setNewMessage(event.target.value)
+        if (!socketConnected) return
     }
-    const defaultOptions = {
-        loop: true,
-        autoplay: true,
-        animationData: animationData,
-        rendererSettings: {
-            preserveAspectRatio: "xMidYMid slice",
-        },
-    };
-
     const toast = useToast()
     const sendMessage = async (event) => {
         if (event.key === "Enter" && newMessage) {
@@ -69,6 +91,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                         Authorization: `Bearer ${token}`
                     }
                 })
+                socket.emit('new message', data)
                 setMessages([...messages, data])
             }
             catch (error) {
@@ -120,8 +143,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                         w={20}
                         h={20}
                         alignSelf="center"
-                        margin="auto" /> : <div style={{display:'flex',flexDirection:'column',overflowY:'scroll',scrollbarWidth:'none'}}>
-                             <ScrollableChat messages={messages}/>
+                        margin="auto" /> : <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'scroll', scrollbarWidth: 'none' }}>
+                        <ScrollableChat messages={messages} />
                     </div>}
                     <FormControl
                         id="first-name"
@@ -129,17 +152,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                         mt={3}
                         onKeyDown={sendMessage}
                     >
-                        {istyping ? (
-                            <div>
-                                <Lottie
-                                    options={defaultOptions}
-                                    width={70}
-                                    style={{ marginBottom: 15, marginLeft: 0 }}
-                                />
-                            </div>
-                        ) : (
-                            <></>
-                        )}
                         <Input
                             variant="filled"
                             bg="#E0E0E0"

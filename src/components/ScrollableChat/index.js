@@ -5,7 +5,6 @@ import { Avatar, Tooltip } from '@chakra-ui/react'
 
 const ScrollableChat = ({ messages }) => {
   const [loggedUser,setLoggedUser]=useState(JSON.parse(localStorage.getItem('user')))
-  console.log(loggedUser);
   return (
     <ScrollableFeed>
       {messages && messages.map((message, index) => {
