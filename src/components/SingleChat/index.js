@@ -52,6 +52,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         //gửi dữ liệu đến server
         socket.emit('setup', user)
         //kết nối thành công
+        //
         socket.on('connected', () => setSocketConnected(true))
     }, [])
     useEffect(() => {
